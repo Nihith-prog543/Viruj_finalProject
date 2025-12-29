@@ -1,0 +1,11 @@
+run = "python app.py"
+language = "python3"
+entrypoint = "app.py"
+
+[deploy]
+run = ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:8080"]
+
+[env]
+PORT = "8080"
+HOST = "0.0.0.0"
+

@@ -1,0 +1,8 @@
+++ b/synthesis_route_finder/apt.txt
+libxrender1
+libxext6
+libsm6
+libice6
+libxt6
+libglu1-mesa
+

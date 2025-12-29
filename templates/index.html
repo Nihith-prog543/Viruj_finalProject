@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Synthesis Route Finder</title>
+    <!-- Marked.js for Markdown to HTML conversion -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif; /* Modern, readable font */
+            background-color: #e8f5e9;
+            color: #2e2e2e; /* Darker text for better readability */
+            display: flex;
+            line-height: 1.6; /* Improved readability */
+            text-rendering: optimizeLegibility; /* Better font rendering */
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar-fixed {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dcdcdc;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0px 10px rgba(0,0,0,0.05);
+        }
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            width: 70px;
+            height: 70px;
+            background-color: #00796b;
+            background-image: url('/static/images/viruj logo.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            border: 3px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .company-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2e2e2e;
+        }
+        .sidebar-header h1 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #00796b;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tab {
+            display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            color: #444;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+        .tab.active {
+            color: #004d40;
+            background-color: #a7e1a9;
+            border-left-color: #004d40;
+            font-weight: 600;
+        }
+        .tab:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+        .tab-icon {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        /* --- MAIN PAGE CONTENT STYLES --- */
+        .page-content {
+            flex-grow: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+        .container {
+            margin: 0;
+            padding: 20px;
+            background-color: #a7e1a9;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 121, 107, 0.1);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #004d40;
+        }
+        .description {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .search-section {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.1);
+            border: 1px solid rgba(0, 121, 107, 0.1);
+        }
+        .search-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2e2e2e;
+        }
+        .input-field {
+            width: 100%;
+            padding: 15px 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #00796b;
+            border-radius: 12px;
+            color: #333;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4caf50;
+            background-color: rgba(255, 255, 255, 1);
+        }
+        .input-field::placeholder {
+            color: #666;
+        }
+        .advanced-options {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.1);
+            border: 1px solid rgba(0, 121, 107, 0.1);
+        }
+        .options-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2e2e2e;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #00796b;
+            margin-right: 10px;
+        }
+        .checkbox-label {
+            color: #333;
+            font-size: 0.9rem;
+        }
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00796b;
+            cursor: pointer;
+        }
+        .search-btn {
+            background: linear-gradient(135deg, #00796b, #4caf50);
+            color: #ffffff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 121, 107, 0.3);
+        }
+        .search-btn:disabled {
+            background: linear-gradient(135deg, #9e9e9e, #bdbdbd);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .info-box {
+            background-color: #f0f4f8;
+            border-left: 4px solid #4a9eff;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .results-section {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 121, 107, 0.1);
+        }
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #004d40;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .chat-container {
+            height: 400px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #00796b;
+            border-radius: 25px;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        .send-btn {
+            background: linear-gradient(135deg, #00796b, #4caf50);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        .message.user {
+            background: linear-gradient(135deg, #00796b, #4caf50);
+            color: white;
+            margin-left: auto;
+        }
+        .message.assistant {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #00796b;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 25px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 6px;
+            background: linear-gradient(135deg, #00796b, #4caf50);
+            border-radius: 25px;
+            transition: width 0.3s ease;
+        }
+        .viability-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .viability-high { background-color: #d4edda; color: #155724; }
+        .viability-medium { background-color: #fff3cd; color: #856404; }
+        .viability-low { background-color: #f8d7da; color: #721c24; }
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-item {
+            background-color: #f0f2f6;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .image-item:hover { transform: translateY(-5px); }
+        .patent-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        .image-caption {
+            font-size: 0.9rem;
+            color: #555;
+            word-break: break-word;
+        }
+        .stop-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            transition: background-color 0.2s ease;
+        }
+        .stop-btn:hover {
+            background-color: #d32f2f;
+        }
+        /* Table Styling for AI Analysis */
+        .ai-analysis-content table,
+        #predictedRouteResults table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden; /* Ensures rounded corners apply to borders */
+        }
+        .rdkit-reaction-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .ai-analysis-content th,
+        .ai-analysis-content td,
+        #predictedRouteResults th,
+        #predictedRouteResults td {
+            border: 1px solid #e0e0e0; /* Lighter border */
+            padding: 14px 18px; /* More padding */
+            vertical-align: top;
+        }
+        .ai-analysis-content th,
+        #predictedRouteResults th {
+            background-color: #00796b; /* Dark green background */
+            color: #ffffff; /* White text for headers */
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .ai-analysis-content tr:nth-child(even),
+        #predictedRouteResults tr:nth-child(even) {
+            background-color: #f5fcf5; /* Very light green for even rows */
+        }
+        .ai-analysis-content tr:hover,
+        #predictedRouteResults tr:hover {
+            background-color: #e6f7e6; /* Slightly darker hover for readability */
+        }
+        .ai-analysis-content p, #predictedRouteResults p, .ai-analysis-content ul, #predictedRouteResults ul, .ai-analysis-content ol, #predictedRouteResults ol {
+            margin-bottom: 1em; /* Spacing for paragraphs and lists */
+        }
+        .ai-analysis-content ul, #predictedRouteResults ul, .ai-analysis-content ol, #predictedRouteResults ol {
+            padding-left: 25px; /* Indent lists */
+        }
+        .ai-analysis-content strong, #predictedRouteResults strong {
+            color: #004d40; /* Stronger emphasis for bold text */
+        }
+        /* AI Analysis Content Styling */
+        .ai-analysis-content, #predictedRouteResults {
+            font-size: 1rem; /* Consistent font size */
+            line-height: 1.7; /* Enhanced line spacing */
+            color: #2e2e2e; /* Ensure text is black */
+        }
+
+        .ai-analysis-content h1, .ai-analysis-content h2, .ai-analysis-content h3, .ai-analysis-content h4, .ai-analysis-content h5, .ai-analysis-content h6,
+        #predictedRouteResults h1, #predictedRouteResults h2, #predictedRouteResults h3, #predictedRouteResults h4, #predictedRouteResults h5, #predictedRouteResults h6 {
+            color: #004d40; /* Dark green for headings */
+            margin-top: 25px;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        .ai-analysis-content h1, #predictedRouteResults h1 { font-size: 2.2rem; }
+        .ai-analysis-content h2, #predictedRouteResults h2 { font-size: 1.8rem; }
+        .ai-analysis-content h3, #predictedRouteResults h3 { font-size: 1.5rem; }
+        .ai-analysis-content h4, #predictedRouteResults h4 { font-size: 1.2rem; }
+        .ai-analysis-content h5, #predictedRouteResults h5 { font-size: 1.1rem; }
+        .ai-analysis-content h6, #predictedRouteResults h6 { font-size: 1rem; }
+
+    </style>
+    <style> /* Additional specific styles for API Buyers table */
+        #apiBuyersTableContainer table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #004d40; /* Stronger border for the table itself */
+        }
+
+        #apiBuyersTableContainer table.results-table th,
+        #apiBuyersTableContainer table.results-table td {
+            border: 2px solid #004d40; /* Individual cell borders - now prominent and consistent */
+            padding: 14px 18px;
+            vertical-align: top;
+        }
+
+        #apiBuyersTableContainer table.results-table th {
+            background-color: #00796b;
+            color: #ffffff;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap; /* Prevent header text from wrapping and appearing concatenated */
+        }
+
+        #apiBuyersTableContainer table.results-table tr:nth-child(even) {
+            background-color: #f5fcf5;
+        }
+
+        #apiBuyersTableContainer table.results-table tr:hover {
+            background-color: #e6f7e6;
+        }
+
+        /* Distinct styling for newly found companies */
+        #apiBuyersTableContainer table.newly-found-companies-table tr {
+            background-color: #e0f2f7; /* A light blue to differentiate */
+        }
+
+        #apiBuyersTableContainer table.newly-found-companies-table tr:nth-child(even) {
+            background-color: #cfe8f1; /* Slightly darker light blue for even rows */
+        }
+
+        #apiBuyersTableContainer table.newly-found-companies-table tr:hover {
+            background-color: #b3dee8; /* Hover effect for newly found */
+        }
+
+        /* API Manufacturers table styling - Same as API Buyers */
+        #localManufacturersTableContainer table.results-table,
+        #newManufacturersTableContainer table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #004d40; /* Stronger border for the table itself */
+        }
+
+        #localManufacturersTableContainer table.results-table th,
+        #localManufacturersTableContainer table.results-table td,
+        #newManufacturersTableContainer table.results-table th,
+        #newManufacturersTableContainer table.results-table td {
+            border: 2px solid #004d40; /* Individual cell borders - prominent and consistent */
+            padding: 14px 18px;
+            vertical-align: top;
+        }
+
+        #localManufacturersTableContainer table.results-table th,
+        #newManufacturersTableContainer table.results-table th {
+            background-color: #00796b;
+            color: #ffffff;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap; /* Prevent header text from wrapping */
+        }
+
+        #localManufacturersTableContainer table.results-table tr:nth-child(even),
+        #newManufacturersTableContainer table.results-table tr:nth-child(even) {
+            background-color: #f5fcf5; /* Very light green for even rows */
+        }
+
+        #localManufacturersTableContainer table.results-table tr:hover,
+        #newManufacturersTableContainer table.results-table tr:hover {
+            background-color: #e6f7e6; /* Slightly darker hover for readability */
+        }
+        .manufacturer-tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .manufacturer-tab-btn {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            background: #e0f2f1;
+            color: #004d40;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .manufacturer-tab-btn.active {
+            background: #00796b;
+            color: #fff;
+        }
+        .manufacturer-panel {
+            border: 1px solid #d1f2eb;
+            border-radius: 16px;
+            padding: 20px;
+            background: #f9fffe;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar-fixed">
+        <div class="sidebar-header">
+            <div class="logo" id="companyLogo"></div>
+            <div class="company-name">Viruj Group</div>
+            <h1>Advanced Synthesis Route Finder</h1>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="tab active" onclick="showTab('synthesis')">
+                <span class="tab-icon">🧪</span>
+                <span>Synthesis Analysis</span>
+            </div>
+            <div class="tab" onclick="showTab('assistant')">
+                <span class="tab-icon">🤖</span>
+                <span>AI Assistant</span>
+            </div>
+            <div class="tab" onclick="showTab('results')">
+                <span class="tab-icon">📊</span>
+                <span>Route Results</span>
+            </div>
+            <div class="tab" onclick="showTab('aiPredictedRoute')">
+                <span class="tab-icon">🧪</span>
+                <span>AI Predicted Route</span>
+            </div>
+            <div class="tab" onclick="showTab('apiBuyers')">
+                <span class="tab-icon">💰</span>
+                <span>API Buyers</span>
+            </div>
+            <div class="tab" onclick="showTab('apiManufacturers')">
+                <span class="tab-icon">🏭</span>
+                <span>API Manufacturers</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="page-content">
+        <div class="container">
+            <!-- Synthesis Analysis Tab -->
+            <div id="synthesis" class="tab-content active">
+                <h2 class="section-title">
+                    <span class="tab-icon">🧪</span>
+                    Synthesis Route Analysis
+                </h2>
+                <p class="description">Enter API details and preferences for advanced synthesis route finding with commercial viability assessment.</p>
+                
+                <div class="search-grid">
+                    <!-- API Search Section -->
+                    <div class="search-section">
+                        <h3 class="search-title">API Name</h3>
+                        <input type="text" class="input-field" id="apiName" placeholder="e.g., Isoflavuconazole, Ravuconazole HCl">
+                        
+                        <h3 class="search-title">Supplier Preference</h3>
+                        <input type="text" class="input-field" id="supplierPref" placeholder="e.g., China, India, USA">
+                    </div>
+
+                    <!-- Advanced Options Section -->
+                    <div class="advanced-options">
+                        <h3 class="options-title">Advanced Search Options</h3>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="searchDepth" style="display: block; margin-bottom: 5px; color: #333; font-weight: 500;">Search Depth:</label>
+                            <select id="searchDepth" class="input-field" style="margin-bottom: 0;">
+                                <option value="standard">Standard</option>
+                                <option value="deep" selected>Deep</option>
+                                <option value="comprehensive">Comprehensive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="includeAlternative" class="checkbox" checked>
+                            <label for="includeAlternative" class="checkbox-label">Include Alternative Routes</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="focusHighYield" class="checkbox" checked>
+                            <label for="focusHighYield" class="checkbox-label">Focus on High Yield Routes</label>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <div class="slider-label">
+                                <span class="checkbox-label">Commercial Viability Threshold</span>
+                                <span id="thresholdValue" style="font-weight: bold; color: #00796b;">75</span>
+                            </div>
+                            <input type="range" id="viabilityThreshold" class="slider" min="0" max="100" value="75">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="search-btn" onclick="findOptimizedRoute()" id="searchBtn">
+                    🔍 Find Optimized Synthesis Route with Commercial Analysis
+                </button>
+                
+                <div class="info-box">
+                    <p><strong>Enhanced patent analysis</strong> with comprehensive supplier research, commercial viability evaluation, and conversational AI assistant</p>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="progressSection" style="display: none;">
+                    <div class="progress-container">
+                        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="progressText" style="text-align: center; margin-top: 10px; color: #00796b;"></div>
+                    <button class="stop-btn" onclick="stopAnalysis()" id="stopBtn" style="display: none;">Stop Analysis</button>
+                </div>
+            </div>
+
+            <!-- New div for commercial analysis -->
+            <div id="commercialContainer" style="display: none;"></div>
+
+            <!-- AI Assistant Tab -->
+            <div id="assistant" class="tab-content">
+                <h2 class="section-title">
+                    <span class="tab-icon">🤖</span>
+                    AI Assistant
+                </h2>
+                <p class="description" id="assistantDescription">Hello! I'm your AI Assistant. Ask me anything related to synthesis routes, suppliers, or commercial viability.</p>
+                
+                <div id="chatSection">
+                    <div class="chat-container" id="chatContainer">
+                        <div class="message assistant">
+                            <strong>AI Assistant:</strong> Hello! I'm here to help you with synthesis route analysis, commercial viability assessment, and supplier research. Ask me anything about your analysis!
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask about synthesis routes, suppliers, or commercial viability..." onkeypress="handleChatKeypress(event)">
+                        <button class="send-btn" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Results Tab -->
+            <div id="results" class="tab-content">
+                <h2 class="section-title">
+                    <span class="tab-icon">📊</span>
+                    Synthesis Route Results
+                </h2>
+                <p class="description">View optimized synthesis routes with detailed analysis and commercial scores.</p>
+                
+                <div id="resultsContainer">
+                    <div class="info-box">
+                        <p>No synthesis results available. Please run a synthesis analysis first.</p>
+                    </div>
+                    <!-- analysisResults will be populated here by JavaScript -->
+                    <div id="analysisResults" style="display: none;"></div>
+                    <!-- commercialContainer will be populated here by JavaScript -->
+                    <div id="commercialContainer" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- AI Predicted Route Section -->
+            <div id="aiPredictedRoute" class="tab-content">
+                <h2 class="section-title">
+                    <span class="tab-icon">🧪</span>
+                    AI Predicted Synthesis Route
+                </h2>
+                <p class="description">Leverage AI to predict optimal synthesis routes based on your criteria.</p>
+                <div class="search-grid">
+                    <div class="search-section">
+                        <h3 class="search-title">API Name</h3>
+                        <input type="text" class="input-field" id="predictedApiName" placeholder="e.g., Isoflavuconazole, Ravuconazole HCl">
+                        <small style="display: block; margin-top: 5px; color: #555;">Enter the exact API name. The system will predict a route and research related compounds.</small>
+
+                        <h3 class="search-title" style="margin-top: 20px;">Supplier Preference</h3>
+                        <input type="text" class="input-field" id="predictedCountryPreference" placeholder="e.g., China, India, USA">
+                        <small style="display: block; margin-top: 5px; color: #555;">Specify a country to prioritize suppliers from.</small>
+                    </div>
+
+                    <div class="advanced-options">
+                        <h3 class="options-title">Prediction Criteria (Optional)</h3>
+                        <textarea id="predictedCriteria" rows="5" class="input-field" style="height: 120px;" placeholder="Add any specific criteria to refine the prediction (e.g., 'green solvents only', 'maximize atom economy', 'avoid hazardous reagents')."></textarea>
+                        <small style="display: block; margin-top: 5px; color: #555;">Describe your desired optimization criteria for the AI. If left empty, default criteria will be used.</small>
+                    </div>
+                </div>
+                <button class="search-btn" onclick="predictRoute()" id="predictBtn">
+                    🚀 Predict Route
+                </button>
+                <button class="stop-btn" onclick="stopPrediction()" id="stopPredictionBtn" style="display: none;">Stop Prediction</button>
+                
+                <div id="predictionProgressBarContainer" class="progress-bar-container" style="display: none;">
+                    <div class="progress-bar" id="predictionProgressBar"></div>
+                    <div class="progress-text" id="predictionProgressText"></div>
+                </div>
+                <div id="predictedRouteResults" class="results-container">
+                    <!-- AI predicted route results will be displayed here -->
+                </div>
+            </div>
+
+            <!-- API Buyers Section -->
+            <div id="apiBuyers" class="tab-content">
+                <h2 class="section-title">
+                    <span class="tab-icon">💰</span>
+                    Find API Buyers (Finished Dosage Manufacturers)
+                </h2>
+                <p class="description">Discover companies manufacturing finished dosage forms containing a specific API in a target country.</p>
+                
+                <div class="search-grid">
+                    <div class="search-section">
+                        <h3 class="search-title">API Name</h3>
+                        <input type="text" class="input-field" id="apiBuyerName" placeholder="e.g., Etoricoxib">
+                        
+                        <h3 class="search-title" style="margin-top: 20px;">Country</h3>
+                        <input type="text" class="input-field" id="apiBuyerCountry" placeholder="e.g., Egypt">
+                    </div>
+                </div>
+                
+                <button class="search-btn" onclick="findApiBuyers()" id="findBuyersBtn">
+                    🔎 Find Buyers
+                </button>
+
+                <!-- Progress and Results Section for API Buyers -->
+                <div id="apiBuyersProgressSection" style="display: none;">
+                    <div class="progress-container">
+                        <div id="apiBuyersProgressBar" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div id="apiBuyersProgressText" style="text-align: center; margin-top: 10px; color: #00796b;"></div>
+                </div>
+                
+                <div id="apiBuyersResults" class="results-section" style="display: none; margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 class="results-title" style="margin: 0;">API Buyer Search Results</h3>
+                        <div id="apiBuyersDownloadButtons" style="display: none;">
+                            <button onclick="downloadApiBuyers(); return false;" class="download-btn" style="padding: 8px 16px; background-color: #004d40; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                📊 Download Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div id="apiBuyersTableContainer"></div>
+                    <div id="apiBuyersInfo" class="info-box" style="display: none; margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- API Manufacturers Section -->
+            <div id="apiManufacturers" class="tab-content">
+                <h2 class="section-title">
+                    <span class="tab-icon">🏭</span>
+                    API Manufacturers
+                </h2>
+                <p class="description">
+                    Browse the curated Excel-imported manufacturers or switch to the discovery tab to find and store brand new suppliers.
+                </p>
+                
+                <div class="manufacturer-tab-buttons">
+                    <button class="manufacturer-tab-btn active" data-target="localManufacturersPanel">
+                        Existing Manufacturers
+                    </button>
+                    <button class="manufacturer-tab-btn" data-target="newManufacturersPanel">
+                        New Manufacturers
+                    </button>
+                </div>
+
+                <!-- Existing manufacturers panel -->
+                <div id="localManufacturersPanel" class="manufacturer-panel" style="display: block;">
+                    <div class="search-grid">
+                        <div class="search-section">
+                            <h3 class="search-title">API Name</h3>
+                            <input type="text" class="input-field" id="localApiManufacturerName" placeholder="e.g., Metformin">
+                            <small style="display: block; margin-top: 5px; color: #555;">Enter the active ingredient to filter manufacturers.</small>
+                        </div>
+                        <div class="search-section">
+                            <h3 class="search-title">Country</h3>
+                            <input type="text" class="input-field" id="localApiManufacturerCountry" placeholder="e.g., India">
+                            <small style="display: block; margin-top: 5px; color: #555;">Results will be constrained to this country (case-insensitive).</small>
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="loadLocalManufacturers()" id="loadLocalManufacturersBtn">
+                        📚 Load Manufacturers
+                    </button>
+
+                    <div id="localManufacturersResults" class="results-section" style="display: none; margin-top: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 class="results-title" style="margin: 0;">Local Database Records</h3>
+                            <div id="localManufacturersDownloadButtons" style="display: none;">
+                                <button onclick="downloadLocalManufacturers(); return false;" class="download-btn" style="padding: 8px 16px; background-color: #004d40; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                    📊 Download Excel
+                                </button>
+                            </div>
+                        </div>
+                        <div id="localManufacturersTableContainer"></div>
+                        <div id="localManufacturersInfo" class="info-box" style="display: none; margin-top: 20px;"></div>
+                    </div>
+                </div>
+
+                <!-- Discovery panel -->
+                <div id="newManufacturersPanel" class="manufacturer-panel" style="display: none;">
+                    <div class="search-grid">
+                        <div class="search-section">
+                            <h3 class="search-title">API Name</h3>
+                            <input type="text" class="input-field" id="newApiManufacturerName" placeholder="e.g., Metformin">
+                            <small style="display: block; margin-top: 5px; color: #555;">Enter the active ingredient for discovery.</small>
+                        </div>
+                        <div class="search-section">
+                            <h3 class="search-title">Country</h3>
+                            <input type="text" class="input-field" id="newApiManufacturerCountry" placeholder="e.g., India">
+                            <small style="display: block; margin-top: 5px; color: #555;">Focus discovery results on this country.</small>
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="discoverNewManufacturers()" id="discoverManufacturersBtn">
+                        ✨ Discover New Manufacturers
+                    </button>
+
+                    <!-- Progress Section -->
+                    <div id="newManufacturersProgressSection" style="display: none;">
+                        <div class="progress-container">
+                            <div id="newManufacturersProgressBar" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div id="newManufacturersProgressText" style="text-align: center; margin-top: 10px; color: #00796b;"></div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="newManufacturersResults" class="results-section" style="display: none; margin-top: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 class="results-title" style="margin: 0;">New Manufacturer Discoveries</h3>
+                            <div id="newManufacturersDownloadButtons" style="display: none;">
+                                <button onclick="downloadNewManufacturers(); return false;" class="download-btn" style="padding: 8px 16px; background-color: #004d40; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                    📊 Download Excel
+                                </button>
+                            </div>
+                        </div>
+                        <div id="newManufacturersTableContainer"></div>
+                        <div id="newManufacturersInfo" class="info-box" style="display: none; margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSessionId = null;
+        let analysisResults = null;
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            // Only add 'active' class to event.currentTarget if 'event' is defined and has 'currentTarget'
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Close prediction SSE if switching away from AI Predicted Route
+            if (window.predictionSource && tabName !== 'aiPredictedRoute') {
+                window.predictionSource.close();
+                console.log('Closed prediction SSE connection due to tab switch.');
+            }
+
+            if (tabName === 'apiManufacturers') {
+                resetNewManufacturersUI(true);
+                document.getElementById('localManufacturersResults').style.display = 'none';
+                document.getElementById('localManufacturersTableContainer').innerHTML = '';
+                document.getElementById('localManufacturersInfo').style.display = 'none';
+                document.getElementById('localManufacturersInfo').innerHTML = '';
+            }
+        }
+
+        // Update threshold value display
+        document.getElementById('viabilityThreshold').addEventListener('input', function() {
+            document.getElementById('thresholdValue').textContent = this.value;
+        });
+
+        // Main analysis function
+        async function findOptimizedRoute() {
+            const apiName = document.getElementById('apiName').value;
+            const supplierPref = document.getElementById('supplierPref').value;
+            const searchDepth = document.getElementById('searchDepth').value;
+            const includeAlternative = document.getElementById('includeAlternative').checked;
+            const focusHighYield = document.getElementById('focusHighYield').checked;
+            const viabilityThreshold = document.getElementById('viabilityThreshold').value;
+            
+            if (!apiName.trim()) {
+                alert('Please enter an API name');
+                return;
+            }
+
+            const searchBtn = document.getElementById('searchBtn');
+            const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            // Show progress and disable button
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<div class="spinner"></div> Processing synthesis analysis...';
+            progressSection.style.display = 'block';
+            stopBtn.style.display = 'block'; // Show stop button
+            
+            try {
+                // Initial progress update
+                updateProgress(5, 'Initializing analysis...');
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_name: apiName,
+                        supplier_preference: supplierPref,
+                        search_depth: searchDepth,
+                        include_alternatives: includeAlternative,
+                        focus_high_yield: focusHighYield,
+                        viability_threshold: parseInt(viabilityThreshold)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = data.session_id;
+                    
+                    // Start listening for progress updates
+                    const eventSource = new EventSource(`/api/progress/${currentSessionId}`);
+                    eventSource.onmessage = function(event) {
+                        const progressData = JSON.parse(event.data);
+                        updateProgress(progressData.percentage, progressData.message);
+                        
+                        if (progressData.percentage === 100 || progressData.error) {
+                            eventSource.close();
+                            // Fetch final results once analysis is complete/stopped
+                            fetchFinalResults(currentSessionId);
+                        }
+                    };
+                    eventSource.onerror = function(err) {
+                        console.error('EventSource failed:', err);
+                        eventSource.close();
+                        alert('Error receiving progress updates. Check console for details.');
+                        resetUI();
+                    };
+
+                } else {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Analysis failed: ' + error.message);
+                resetUI();
+            } finally {
+                // UI reset handled by fetchFinalResults or onerror now
+            }
+        }
+
+        async function fetchFinalResults(sessionId) {
+            try {
+                const response = await fetch(`/api/session/${sessionId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data.analysis_complete) {
+                        analysisResults = data.data.results;
+                        displayResults(data.data.results);
+                        // enableChatbot(); // Removed as chatbot is enabled by default
+                        // Switch to results tab
+                        document.querySelector('.tab[onclick="showTab(\'results\')"]').click();
+                    } else if (data.data.results && data.data.results.error) {
+                        alert('Analysis stopped or failed: ' + data.data.results.error);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching final results:', error);
+                alert('Error fetching final results: ' + error.message);
+            } finally {
+                resetUI();
+            }
+        }
+
+        function resetUI() {
+            const searchBtn = document.getElementById('searchBtn');
+            const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const stopBtn = document.getElementById('stopBtn');
+
+            searchBtn.disabled = false;
+            searchBtn.innerHTML = '🔍 Find Optimized Synthesis Route with Commercial Analysis';
+            stopBtn.style.display = 'none'; // Hide stop button
+            progressSection.style.display = 'none';
+            progressBar.style.width = '0%';
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        async function stopAnalysis() {
+            if (!currentSessionId) return;
+
+            const stopBtn = document.getElementById('stopBtn');
+            stopBtn.disabled = true;
+            stopBtn.textContent = 'Stopping...';
+
+            try {
+                const response = await fetch('/api/stop_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ session_id: currentSessionId })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Analysis stopped successfully.');
+                        updateProgress(0, 'Analysis stopped.');
+                        // Optionally reset the interface more thoroughly
+                    } else {
+                        throw new Error(data.error || 'Failed to stop analysis');
+                    }
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error stopping analysis:', error);
+                alert('Error stopping analysis: ' + error.message);
+            } finally {
+                stopBtn.disabled = false;
+                stopBtn.textContent = 'Stop Analysis';
+                // After stopping, hide progress section and stop button
+                document.getElementById('progressSection').style.display = 'none';
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('searchBtn').innerHTML = '🔍 Find Optimized Synthesis Route with Commercial Analysis';
+            }
+        }
+
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            if (!resultsContainer) {
+                console.error("Error: resultsContainer element not found.");
+                alert('Error displaying results: Missing results container. Please refresh the page.');
+                return;
+            }
+
+            let analysisResultsDiv = document.getElementById('analysisResults');
+            if (!analysisResultsDiv) {
+                analysisResultsDiv = document.createElement('div');
+                analysisResultsDiv.id = 'analysisResults';
+                analysisResultsDiv.style.display = 'none';
+                resultsContainer.appendChild(analysisResultsDiv);
+            }
+
+            let commercialContainerDiv = document.getElementById('commercialContainer');
+            if (!commercialContainerDiv) {
+                commercialContainerDiv = document.createElement('div');
+                commercialContainerDiv.id = 'commercialContainer';
+                commercialContainerDiv.style.display = 'none';
+                resultsContainer.appendChild(commercialContainerDiv);
+            }
+
+            // Clear previous contents of the specific divs before populating
+            analysisResultsDiv.innerHTML = '';
+            commercialContainerDiv.innerHTML = '';
+
+            if (results.error) {
+                resultsContainer.innerHTML = `
+                    <div class="info-box" style="border-left-color: #f44336; background-color: #ffebee;">
+                        <p><strong>Error:</strong> ${results.error}</p>
+                        ${results.suggestions ? results.suggestions.map(s => `<p>• ${s}</p>`).join('') : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            const viability = results.viability_assessment;
+            const patentData = results.patent_data || {};
+            const patentUrl = results.patent_url || patentData.url || null;
+            const viabilityClass = viability.score >= 75 ? 'viability-high' : 
+                                 viability.score >= 50 ? 'viability-medium' : 'viability-low';
+
+            // Clear the existing content of resultsContainer first, except for the analysisResults and commercialContainer placeholders
+            // It's crucial to NOT clear analysisResults or commercialContainer if they are direct children of resultsContainer and will be populated directly
+            resultsContainer.querySelector('.info-box')?.remove(); // Remove the "No synthesis results available" message
+
+            // Construct content for Analysis Results section
+            const analysisResultsContent = `
+                <div class="results-section">
+                    <h3 class="results-title">Analysis Results for ${results.api_name}</h3>
+                    
+                    <div class="viability-score ${viabilityClass}">
+                        Commercial Viability: ${viability.score}/100
+                        <div style="font-size: 1rem; margin-top: 5px;">${viability.level}</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div>
+                            <h4>✅ Positive Indicators:</h4>
+                            <ul>
+                                ${viability.positive_indicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>❌ Challenges:</h4>
+                            <ul>
+                                ${viability.negative_indicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4>📊 Search Statistics:</h4>
+                        <p>Patents Analyzed: ${results.search_stats.total_searched}</p>
+                        <p>Relevant Patents Found: ${results.search_stats.relevant_found}</p>
+                        <p>Success Rate: ${results.search_stats.success_rate.toFixed(1)}%</p>
+                    </div>
+                    
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4>📄 Primary Patent Source:</h4>
+                        <p><strong>Title:</strong> ${patentData.title || 'Unknown'}</p>
+                        ${patentUrl ? `<p><strong>Link:</strong> <a href="${patentUrl}" target="_blank" rel="noopener noreferrer">${patentUrl}</a></p>` : ''}
+                    </div>
+                    
+                    <!-- Placeholder for Patent-Enhanced Synthesis Analysis -->
+                    <div class="results-section" style="margin-top: 25px;">
+                        <h3 class="results-title">Patent-Enhanced Synthesis Analysis</h3>
+                        <div id="aiAnalysisContentPlaceholder" class="ai-analysis-content"></div>
+                    </div>
+                    
+                    <!-- Placeholder for Patent Diagrams & Structures -->
+                    <div id="patentImagesPlaceholder"></div>
+                </div>
+            `;
+            analysisResultsDiv.innerHTML = analysisResultsContent;
+            analysisResultsDiv.style.display = 'block';
+
+            // Construct content for Commercial Viability Details section
+            const commercialContainerContent = `
+                <div class="results-section">
+                    <h3 class="results-title">Commercial Viability Details</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #00796b;">${viability.score}</div>
+                            <div style="color: #666;">Viability Score</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #00796b;">${viability.yield_info.max_yield}%</div>
+                            <div style="color: #666;">Max Yield</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #00796b;">${viability.yield_info.yield_count}</div>
+                            <div style="color: #666;">Yield Data Points</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            commercialContainerDiv.innerHTML = commercialContainerContent;
+            commercialContainerDiv.style.display = 'block'; // Ensure commercial container is visible
+
+            // Set the AI analysis content after the main structure is in place
+            const aiAnalysisContentDiv = document.getElementById('aiAnalysisContentPlaceholder');
+            if (aiAnalysisContentDiv) {
+                aiAnalysisContentDiv.innerHTML = marked.parse(results.ai_analysis);
+            } else {
+                console.error("Error: #aiAnalysisContentPlaceholder not found.");
+            }
+
+            // Display patent images if available
+            if (results.patent_data && results.patent_data.images && results.patent_data.images.length > 0) {
+                displayImages(results.patent_data.images, 'patentImagesPlaceholder');
+            }
+        }
+
+        function displayImages(images, targetElementId) {
+            const targetElement = document.getElementById(targetElementId);
+            if (!targetElement) return;
+
+            let imagesHtml = `
+                <div class="results-section" style="margin-top: 25px;">
+                    <h3 class="results-title">Patent Diagrams & Structures</h3>
+                    <div class="image-gallery">
+            `;
+
+            images.forEach((img, index) => {
+                imagesHtml += `
+                    <div class="image-item">
+                        <img src="data:image/png;base64,${img.base64}" alt="${img.alt || 'Patent Diagram'}" title="${img.title || 'Patent Diagram'}" class="patent-image">
+                        <div class="image-caption">Diagram ${index + 1}: ${img.alt || img.title || 'No caption'}</div>
+                    </div>
+                `;
+            });
+
+            imagesHtml += `
+                    </div>
+                </div>
+            `;
+            targetElement.innerHTML += imagesHtml;
+        }
+
+        function enableChatbot() {
+            // This function is no longer needed as the chatbot is enabled by default
+            // document.getElementById('assistantDescription').textContent = 
+            //     'Ask follow-up questions about the synthesis analysis, request optimizations, or get detailed explanations!';
+            // document.getElementById('chatSection').style.display = 'block';
+        }
+
+        // Chat functionality
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const sendBtn = document.querySelector('.send-btn');
+            
+            if (!message) return; // Allow empty messages to be handled if currentSessionId is present.
+
+            if (!currentSessionId) {
+                alert('Please run a Synthesis Analysis or AI Predicted Route first to enable the AI Assistant. The AI Assistant requires a completed analysis or prediction to provide context-aware responses.');
+                return;
+            }
+
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.innerHTML = `<strong>You:</strong> ${message}`;
+            chatContainer.appendChild(userMsg);
+            
+            // Clear input
+            input.value = '';
+            
+            // Show typing indicator
+            const typingMsg = document.createElement('div');
+            typingMsg.className = 'message assistant';
+            typingMsg.innerHTML = '<strong>AI Assistant:</strong> <div class="spinner"></div> Thinking...';
+            chatContainer.appendChild(typingMsg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            sendBtn.disabled = true; // Disable send button
+            sendBtn.textContent = 'Sending...';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        message: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                chatContainer.removeChild(typingMsg);
+                
+                if (data.success) {
+                    // Add AI response
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'message assistant';
+                    aiMsg.innerHTML = `<strong>AI Assistant:</strong> <div style="white-space: pre-wrap; margin-top: 8px;">${data.response}</div>`;
+                    chatContainer.appendChild(aiMsg);
+                } else {
+                    throw new Error(data.error || 'Chat response failed');
+                }
+                
+            } catch (error) {
+                // Remove typing indicator and show error
+                chatContainer.removeChild(typingMsg);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message assistant';
+                errorMsg.innerHTML = `<strong>AI Assistant:</strong> Sorry, I encountered an error: ${error.message}`;
+                chatContainer.appendChild(errorMsg);
+            } finally {
+                sendBtn.disabled = false; // Re-enable send button
+                sendBtn.textContent = 'Send';
+            }
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Advanced Synthesis Route Finder initialized');
+            
+            // Check if there's an existing session (for page refresh)
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session');
+            if (sessionId) {
+                loadSession(sessionId);
+            } else {
+                // Clear any potentially stale session IDs if no session is in URL
+                currentSessionId = null;
+            }
+
+            // By default, show the Synthesis Analysis tab. To make AI Assistant default, change 'synthesis' to 'assistant'
+            document.querySelector('.tab[onclick="showTab(\'assistant\')"]').click();
+        });
+
+        async function loadSession(sessionId) {
+            try {
+                const response = await fetch(`/api/session/${sessionId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data.analysis_complete) {
+                        currentSessionId = sessionId;
+                        analysisResults = data.data.results;
+                        displayResults(data.data.results);
+                    } else {
+                        // If session cannot be loaded, clear the session ID
+                        console.warn(`Session ${sessionId} could not be loaded, clearing currentSessionId.`);
+                        currentSessionId = null;
+                    }
+                } else {
+                    // If session cannot be loaded, clear the session ID
+                    console.warn(`Session ${sessionId} could not be loaded, clearing currentSessionId.`);
+                    currentSessionId = null;
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+                currentSessionId = null; // Also clear on error
+            }
+        }
+
+        // Marked.js setup for markdown rendering
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            sanitize: true,
+            smartLists: true,
+            smartypants: true,
+            xhtml: true
+        });
+
+        async function predictRoute() {
+            const apiName = document.getElementById('predictedApiName').value;
+            const countryPreference = document.getElementById('predictedCountryPreference').value;
+            const predictionCriteria = document.getElementById('predictedCriteria').value;
+
+            if (!apiName) {
+                alert('Please enter an API name for prediction.');
+                return;
+            }
+
+            const predictBtn = document.querySelector('.search-btn');
+            const stopBtn = document.getElementById('stopPredictionBtn');
+            const progressBarContainer = document.getElementById('predictionProgressBarContainer');
+            const progressBar = document.getElementById('predictionProgressBar');
+            const progressText = document.getElementById('predictionProgressText');
+            const resultsDiv = document.getElementById('predictedRouteResults');
+
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            stopBtn.style.display = 'inline-block';
+            progressBarContainer.style.display = 'flex';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Starting prediction...';
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            try {
+                const response = await fetch('/api/predict_route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        api_name: apiName, 
+                        country_preference: countryPreference, 
+                        criteria: predictionCriteria, 
+                        session_id: currentSessionId // Pass existing session ID
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Prediction request failed.');
+                }
+
+                const { session_id } = await response.json();
+                console.log('Prediction session ID:', session_id);
+                currentSessionId = session_id; // Update currentSessionId to be the unified session ID
+
+                // Start SSE for prediction progress
+                window.predictionSource = new EventSource(`/api/prediction_progress/${session_id}`);
+
+                window.predictionSource.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.status === 'progress') {
+                        progressBar.style.width = `${data.progress}%`;
+                        progressText.textContent = data.message;
+                    } else if (data.status === 'complete') {
+                        progressBar.style.width = '100%';
+                        progressText.textContent = 'Prediction complete!';
+                        stopBtn.style.display = 'none';
+                        predictBtn.disabled = false;
+                        predictBtn.textContent = '🚀 Predict Route';
+                        displayPredictedResults(data.result.result);
+                        if (window.predictionSource) window.predictionSource.close();
+                        // currentSessionId is unified, so no need to clear here
+                    } else if (data.status === 'error') {
+                        progressText.textContent = `Error: ${data.message}`;
+                        resultsDiv.innerHTML = `<p class="error-message">Error: ${data.message}</p>`;
+                        stopBtn.style.display = 'none';
+                        predictBtn.disabled = false;
+                        predictBtn.textContent = '🚀 Predict Route';
+                        if (window.predictionSource) window.predictionSource.close();
+                        // currentSessionId is unified, so no need to clear here
+                    }
+                };
+
+                window.predictionSource.onerror = function(err) {
+                    console.error('Prediction SSE error:', err);
+                    progressText.textContent = 'Prediction stream error. Check console for details.'; // More descriptive message
+                    stopBtn.style.display = 'none';
+                    predictBtn.disabled = false;
+                    predictBtn.textContent = '🚀 Predict Route';
+                    if (window.predictionSource) window.predictionSource.close();
+                    // currentSessionId is unified, so no need to clear here
+                };
+
+            } catch (error) {
+                console.error('Predict Route Error:', error);
+                resultsDiv.innerHTML = `<p class="error-message">Failed to start prediction: ${error.message}</p>`;
+                stopBtn.style.display = 'none';
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🚀 Predict Route';
+                progressBarContainer.style.display = 'none';
+                // currentSessionId is unified, so no need to clear here
+            }
+        }
+
+        async function stopPrediction() {
+            if (!currentSessionId) return; // Only try to stop if there's an active session
+
+            const stopBtn = document.getElementById('stopPredictionBtn');
+            stopBtn.disabled = true;
+            stopBtn.textContent = 'Stopping...';
+
+            const predictBtn = document.querySelector('.search-btn');
+            const progressText = document.getElementById('predictionProgressText');
+
+            try {
+                const response = await fetch('/api/stop_prediction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ session_id: currentSessionId }) // Use global unified session ID
+                });
+                if (response.ok) {
+                    progressText.textContent = 'Prediction stopped by user.';
+                    if (window.predictionSource) {
+                        window.predictionSource.close();
+                    }
+                    // currentSessionId is unified, so no need to clear here
+                } else {
+                    progressText.textContent = 'Failed to send stop signal.';
+                    console.error('Failed to send stop signal for prediction:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error stopping prediction:', error);
+                progressText.textContent = 'Error stopping prediction.';
+            } finally {
+                stopBtn.style.display = 'none';
+                stopBtn.disabled = false;
+                stopBtn.textContent = 'Stop Prediction';
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🚀 Predict Route';
+                document.getElementById('predictionProgressBarContainer').style.display = 'none'; // Hide progress bar on stop
+            }
+        }
+
+        async function displayPredictedResults(markdownContent) {
+            const resultsDiv = document.getElementById('predictedRouteResults');
+            let htmlContent = marked.parse(markdownContent);
+            resultsDiv.innerHTML = htmlContent;
+
+            // RDKit visualization logic removed as per user's request for detailed language explanations
+            // and no image display.
+        }
+
+        // Store current search parameters for download
+        let currentApiBuyerSearch = { api_name: '', country: '' };
+
+        // API Buyers functionality
+        async function findApiBuyers() {
+            const apiName = document.getElementById('apiBuyerName').value.trim();
+            const country = document.getElementById('apiBuyerCountry').value.trim();
+
+            if (!apiName || !country) {
+                alert('Please enter both API Name and Country.');
+                return;
+            }
+
+            // Store search parameters for download
+            currentApiBuyerSearch = { api_name: apiName, country: country };
+
+            const findBuyersBtn = document.getElementById('findBuyersBtn');
+            const progressSection = document.getElementById('apiBuyersProgressSection');
+            const progressBar = document.getElementById('apiBuyersProgressBar');
+            const progressText = document.getElementById('apiBuyersProgressText');
+            const resultsDiv = document.getElementById('apiBuyersResults');
+            const tableContainer = document.getElementById('apiBuyersTableContainer');
+            const infoBox = document.getElementById('apiBuyersInfo');
+            const downloadButtons = document.getElementById('apiBuyersDownloadButtons');
+
+            // Reset UI and show loading
+            findBuyersBtn.disabled = true;
+            findBuyersBtn.innerHTML = '<div class="spinner"></div> Searching Buyers...';
+            progressSection.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initiating search...';
+            resultsDiv.style.display = 'none';
+            tableContainer.innerHTML = '';
+            infoBox.style.display = 'none';
+            infoBox.innerHTML = '';
+
+            try {
+                updateApiBuyersProgress(10, 'Fetching existing data...');
+                const response = await fetch('/api/find_buyers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_name: apiName,
+                        country: country
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateApiBuyersProgress(100, 'Search complete!');
+                    displayApiBuyersResults(data.existing_data, data.newly_found_companies);
+                    // Show download buttons if there's data
+                    if ((data.existing_data && data.existing_data.length > 0) || 
+                        (data.newly_found_companies && data.newly_found_companies.length > 0)) {
+                        downloadButtons.style.display = 'block';
+                    }
+                } else {
+                    throw new Error(data.error || 'API Buyer search failed.');
+                }
+                
+            } catch (error) {
+                console.error('API Buyer search error:', error);
+                infoBox.style.display = 'block';
+                infoBox.className = 'info-box'
+                infoBox.style.borderLeftColor = '#f44336'; // Red for error
+                infoBox.style.backgroundColor = '#ffebee';
+                infoBox.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                updateApiBuyersProgress(0, 'Search failed.');
+            } finally {
+                resetApiBuyersUI();
+            }
+        }
+
+        function updateApiBuyersProgress(percent, text) {
+            document.getElementById('apiBuyersProgressBar').style.width = percent + '%';
+            document.getElementById('apiBuyersProgressText').textContent = text;
+        }
+
+        function displayApiBuyersResults(existingData, newlyFoundCompanies) {
+            const resultsDiv = document.getElementById('apiBuyersResults');
+            const tableContainer = document.getElementById('apiBuyersTableContainer');
+            const infoBox = document.getElementById('apiBuyersInfo');
+            resultsDiv.style.display = 'block';
+            tableContainer.innerHTML = ''; // Clear previous table
+
+            if ((!existingData || existingData.length === 0) && (!newlyFoundCompanies || newlyFoundCompanies.length === 0)) {
+                infoBox.style.display = 'block';
+                infoBox.className = 'info-box';
+                infoBox.style.borderLeftColor = ''; // Reset to default
+                infoBox.style.backgroundColor = ''; // Reset to default
+                infoBox.innerHTML = '<p>No API buyers found for the specified API and country.</p>';
+                return;
+            }
+
+            let allCompaniesHtml = '';
+
+            // Debugging: Log the data received
+            console.log('Existing Data:', existingData);
+            console.log('Newly Found Companies:', newlyFoundCompanies);
+
+            if (existingData && existingData.length > 0) {
+                allCompaniesHtml += `
+                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #004d40;">Existing Database Entries (${existingData.length})</h4>
+                    ${createTableHtml(existingData, 'existing-companies')}
+                `;
+            }
+
+            if (newlyFoundCompanies && newlyFoundCompanies.length > 0) {
+                allCompaniesHtml += `
+                    <h4 style="margin-top: 25px; margin-bottom: 10px; color: #004d40;">Newly Found Companies (${newlyFoundCompanies.length})</h4>
+                    ${createTableHtml(newlyFoundCompanies, 'newly-found-companies')}
+                `;
+            } else {
+                allCompaniesHtml += `
+                    <h4 style="margin-top: 25px; margin-bottom: 10px; color: #004d40;">Newly Found Companies</h4>
+                    <p class="info-box" style="border-left-color: #ff9800; background-color: #fff3e0;">No new API buyers were found in this search iteration.</p>
+                `;
+            }
+            tableContainer.innerHTML = allCompaniesHtml;
+        }
+
+        function createTableHtml(data, tableType) {
+            if (!data || data.length === 0) return '<p>No data available.</p>';
+
+            // Define the desired order and display names for the headers
+            const columnDefinitions = [
+                { key: 'company', display: 'Company' },
+                { key: 'api', display: 'API' },
+                { key: 'country', display: 'Country' },
+                { key: 'form', display: 'Form' },
+                { key: 'strength', display: 'Strength' },
+                { key: 'additional_info', display: 'Additional Info' }
+            ];
+
+            let tableHtml = `<table class="results-table ${tableType}-table">`; // Add tableType class
+            
+            // Table Headers
+            tableHtml += '<thead><tr>';
+            columnDefinitions.forEach(colDef => {
+                tableHtml += `<th>${colDef.display}</th>`;
+            });
+            tableHtml += '</tr></thead>';
+
+            // Table Body
+            tableHtml += '<tbody>';
+            data.forEach(row => {
+                tableHtml += '<tr>';
+                columnDefinitions.forEach(colDef => {
+                    let cellContent = row[colDef.key] || '';
+                    // Special handling for 'company' column to remove API prefix for display
+                    if (colDef.key === 'company' && row['api']) {
+                        const apiName = row['api'];
+                        // Remove the API name (case-insensitive) and any leading/trailing spaces or hyphens
+                        cellContent = cellContent.replace(new RegExp(`^${apiName}`, 'i'), '').trim();
+                        if (cellContent.startsWith('-')) {
+                            cellContent = cellContent.substring(1).trim();
+                        }
+                    }
+                    tableHtml += `<td>${cellContent}</td>`;
+                });
+                tableHtml += '</tr>';
+            });
+            tableHtml += '</tbody>';
+            tableHtml += '</table>';
+
+            console.log('Generated Table HTML for ', tableType, ':', tableHtml); // Debugging line
+            return tableHtml;
+        }
+
+        function resetApiBuyersUI() {
+            const findBuyersBtn = document.getElementById('findBuyersBtn');
+            const progressSection = document.getElementById('apiBuyersProgressSection');
+            findBuyersBtn.disabled = false;
+            findBuyersBtn.innerHTML = '🔎 Find Buyers';
+            progressSection.style.display = 'none';
+        }
+
+        async function downloadApiBuyers() {
+            console.log('Download button clicked');
+            if (!currentApiBuyerSearch.api_name || !currentApiBuyerSearch.country) {
+                alert('Please search for API buyers first before downloading.');
+                return;
+            }
+
+            console.log('Downloading for:', currentApiBuyerSearch);
+            
+            try {
+                const response = await fetch('/api/download_buyers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_name: currentApiBuyerSearch.api_name,
+                        country: currentApiBuyerSearch.country,
+                        format: 'excel'
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch {
+                        errorData = { error: errorText };
+                    }
+                    throw new Error(errorData.error || 'Download failed');
+                }
+
+                // Get filename from Content-Disposition header or create one
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = `API_Buyers_${currentApiBuyerSearch.api_name}_${currentApiBuyerSearch.country}.xlsx`;
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                console.log('Downloading file:', filename);
+
+                // Create blob and download
+                const blob = await response.blob();
+                console.log('Blob created, size:', blob.size);
+                
+                if (blob.size === 0) {
+                    throw new Error('Downloaded file is empty');
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log('Download completed');
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download: ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupManufacturerTabs();
+        });
+
+        function setupManufacturerTabs() {
+            const buttons = document.querySelectorAll('.manufacturer-tab-btn');
+            const panels = document.querySelectorAll('.manufacturer-panel');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const target = btn.getAttribute('data-target');
+                    panels.forEach(panel => {
+                        panel.style.display = panel.id === target ? 'block' : 'none';
+                    });
+                });
+            });
+        }
+
+        // Store current search parameters for download
+        let currentManufacturerSearch = { api_name: '', country: '' };
+
+        // Existing manufacturers (Excel-backed DB)
+        async function loadLocalManufacturers() {
+            const apiName = document.getElementById('localApiManufacturerName').value.trim();
+            const country = document.getElementById('localApiManufacturerCountry').value.trim();
+
+            if (!apiName || !country) {
+                alert('Please enter both API Name and Country.');
+                return;
+            }
+
+            // Store search parameters for download
+            currentManufacturerSearch = { api_name: apiName, country: country };
+
+            const btn = document.getElementById('loadLocalManufacturersBtn');
+            const resultsDiv = document.getElementById('localManufacturersResults');
+            const tableContainer = document.getElementById('localManufacturersTableContainer');
+            const infoBox = document.getElementById('localManufacturersInfo');
+            const downloadButtons = document.getElementById('localManufacturersDownloadButtons');
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Loading...';
+            resultsDiv.style.display = 'none';
+            tableContainer.innerHTML = '';
+            infoBox.style.display = 'none';
+            infoBox.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/find_manufacturers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_name: apiName, country })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load manufacturers.');
+                }
+
+                renderLocalManufacturers(data.records || []);
+                infoBox.style.display = 'block';
+                infoBox.innerHTML = `<p><strong>Total matches:</strong> ${(data.records || []).length}</p>`;
+                
+                // Show download buttons if there's data
+                if (data.records && data.records.length > 0) {
+                    downloadButtons.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Local manufacturers error:', error);
+                infoBox.style.display = 'block';
+                infoBox.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📚 Load Manufacturers';
+            }
+        }
+
+        function renderLocalManufacturers(data) {
+            const resultsDiv = document.getElementById('localManufacturersResults');
+            const tableContainer = document.getElementById('localManufacturersTableContainer');
+            const downloadButtons = document.getElementById('localManufacturersDownloadButtons');
+            resultsDiv.style.display = 'block';
+
+            if (!data || data.length === 0) {
+                tableContainer.innerHTML = '<p class="info-box">No manufacturers found in the local database for this query.</p>';
+                downloadButtons.style.display = 'none';
+                return;
+            }
+
+            tableContainer.innerHTML = createManufacturerTableHtml(data);
+            // Show download buttons when data is loaded
+            downloadButtons.style.display = 'block';
+        }
+
+        // New manufacturer discovery
+        async function discoverNewManufacturers() {
+            const apiName = document.getElementById('newApiManufacturerName').value.trim();
+            const country = document.getElementById('newApiManufacturerCountry').value.trim();
+
+            if (!apiName || !country) {
+                alert('Please enter both API Name and Country.');
+                return;
+            }
+
+            // Store search parameters for download
+            currentManufacturerSearch = { api_name: apiName, country: country };
+
+            const progressSection = document.getElementById('newManufacturersProgressSection');
+            const progressBar = document.getElementById('newManufacturersProgressBar');
+            const progressText = document.getElementById('newManufacturersProgressText');
+            const resultsDiv = document.getElementById('newManufacturersResults');
+            const tableContainer = document.getElementById('newManufacturersTableContainer');
+            const infoBox = document.getElementById('newManufacturersInfo');
+            const searchBtn = document.getElementById('discoverManufacturersBtn');
+
+            resetNewManufacturersUI(false);
+            progressSection.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Searching trusted sources...';
+            resultsDiv.style.display = 'none';
+            tableContainer.innerHTML = '<p style="text-align: center; color: #666;">Analyzing results...</p>';
+            infoBox.style.display = 'none';
+            infoBox.innerHTML = '';
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<div class="spinner"></div> Discovering...';
+
+            try {
+                updateNewManufacturersProgress(30, 'Launching Groq research pipeline...');
+                const response = await fetch('/api/discover_manufacturers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_name: apiName, country })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Discovery failed.');
+                }
+
+                updateNewManufacturersProgress(80, 'Rendering discoveries...');
+                renderNewManufacturersResults(
+                    data.existing_records || [],
+                    data.new_records || []
+                );
+
+                let metaHtml = '';
+                metaHtml += `<p><strong>New manufacturers added:</strong> ${data.inserted_count || 0}</p>`;
+                metaHtml += `<p><strong>Total discoveries stored:</strong> ${(data.all_records || []).length}</p>`;
+                infoBox.style.display = 'block';
+                infoBox.innerHTML = metaHtml;
+            } catch (error) {
+                console.error('New manufacturer discovery error:', error);
+                infoBox.style.display = 'block';
+                infoBox.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                tableContainer.innerHTML = '';
+            } finally {
+                updateNewManufacturersProgress(100, 'Done');
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '✨ Discover New Manufacturers';
+            }
+        }
+
+        function updateNewManufacturersProgress(percent, text) {
+            document.getElementById('newManufacturersProgressBar').style.width = percent + '%';
+            document.getElementById('newManufacturersProgressText').textContent = text;
+        }
+
+        function renderNewManufacturersResults(existingData, newData) {
+            const resultsDiv = document.getElementById('newManufacturersResults');
+            const tableContainer = document.getElementById('newManufacturersTableContainer');
+            const downloadButtons = document.getElementById('newManufacturersDownloadButtons');
+            resultsDiv.style.display = 'block';
+
+            let html = '';
+
+            if (existingData && existingData.length > 0) {
+                html += `
+                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #004d40;">Previously Discovered (${existingData.length})</h4>
+                    ${createManufacturerTableHtml(existingData)}
+                `;
+            } else {
+                html += `
+                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #004d40;">Previously Discovered</h4>
+                    <p class="info-box">No prior discoveries for this API and country.</p>
+                `;
+            }
+
+            if (newData && newData.length > 0) {
+                html += `
+                    <h4 style="margin-top: 25px; margin-bottom: 10px; color: #004d40;">New This Search (${newData.length})</h4>
+                    ${createManufacturerTableHtml(newData)}
+                `;
+            } else {
+                html += `
+                    <h4 style="margin-top: 25px; margin-bottom: 10px; color: #004d40;">New This Search</h4>
+                    <p class="info-box">No additional manufacturers were found.</p>
+                `;
+            }
+
+            tableContainer.innerHTML = html;
+            
+            // Show download buttons if there's data
+            if ((existingData && existingData.length > 0) || (newData && newData.length > 0)) {
+                downloadButtons.style.display = 'block';
+            }
+        }
+
+        function createManufacturerTableHtml(data) {
+            if (!data || data.length === 0) return '<p>No data available.</p>';
+
+            const columns = [
+                { key: 'manufacturer', label: 'Manufacturer' },
+                { key: 'api_name', label: 'API' },
+                { key: 'country', label: 'Country' },
+                { key: 'usdmf', label: 'USDMF' },
+                { key: 'cep', label: 'CEP' },
+                { key: 'imported_at', label: 'Imported At' },
+                { key: 'source_name', label: 'Source' },
+                { key: 'source_url', label: 'Source URL' },
+            ];
+
+            let tableHtml = '<table class="results-table"><thead><tr>';
+            columns.forEach(col => (tableHtml += `<th>${col.label}</th>`));
+            tableHtml += '</tr></thead><tbody>';
+
+            data.forEach(row => {
+                tableHtml += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col.key] || '';
+                    if (col.key === 'source_url' && value) {
+                        const safeUrl = value.replace(/"/g, '&quot;');
+                        value = `<a href="${safeUrl}" target="_blank" rel="noopener">Link</a>`;
+                    } else {
+                        value = value.toString()
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;');
+                    }
+                    tableHtml += `<td>${value}</td>`;
+                });
+                tableHtml += '</tr>';
+            });
+
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        }
+
+        function resetNewManufacturersUI(clearInputs = false) {
+            const progressSection = document.getElementById('newManufacturersProgressSection');
+            const tableContainer = document.getElementById('newManufacturersTableContainer');
+            const infoBox = document.getElementById('newManufacturersInfo');
+
+            progressSection.style.display = 'none';
+            tableContainer.innerHTML = '';
+            infoBox.style.display = 'none';
+            infoBox.innerHTML = '';
+
+            if (clearInputs) {
+                document.getElementById('newApiManufacturerName').value = '';
+                document.getElementById('newApiManufacturerCountry').value = '';
+            }
+        }
+
+        async function downloadLocalManufacturers() {
+            console.log('Download Local Manufacturers button clicked');
+            if (!currentManufacturerSearch.api_name || !currentManufacturerSearch.country) {
+                alert('Please search for manufacturers first before downloading.');
+                return;
+            }
+
+            console.log('Downloading for:', currentManufacturerSearch);
+            
+            try {
+                const response = await fetch('/api/download_manufacturers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_name: currentManufacturerSearch.api_name,
+                        country: currentManufacturerSearch.country,
+                        format: 'excel'
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch {
+                        errorData = { error: errorText };
+                    }
+                    throw new Error(errorData.error || 'Download failed');
+                }
+
+                // Get filename from Content-Disposition header or create one
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = `API_Manufacturers_${currentManufacturerSearch.api_name}_${currentManufacturerSearch.country}.xlsx`;
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                console.log('Downloading file:', filename);
+
+                // Create blob and download
+                const blob = await response.blob();
+                console.log('Blob created, size:', blob.size);
+                
+                if (blob.size === 0) {
+                    throw new Error('Downloaded file is empty');
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log('Download completed');
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download: ' + error.message);
+            }
+        }
+
+        async function downloadNewManufacturers() {
+            console.log('Download New Manufacturers button clicked');
+            if (!currentManufacturerSearch.api_name || !currentManufacturerSearch.country) {
+                alert('Please discover manufacturers first before downloading.');
+                return;
+            }
+
+            console.log('Downloading for:', currentManufacturerSearch);
+            
+            try {
+                const response = await fetch('/api/download_manufacturers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_name: currentManufacturerSearch.api_name,
+                        country: currentManufacturerSearch.country,
+                        format: 'excel'
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch {
+                        errorData = { error: errorText };
+                    }
+                    throw new Error(errorData.error || 'Download failed');
+                }
+
+                // Get filename from Content-Disposition header or create one
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = `API_Manufacturers_${currentManufacturerSearch.api_name}_${currentManufacturerSearch.country}.xlsx`;
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                console.log('Downloading file:', filename);
+
+                // Create blob and download
+                const blob = await response.blob();
+                console.log('Blob created, size:', blob.size);
+                
+                if (blob.size === 0) {
+                    throw new Error('Downloaded file is empty');
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                console.log('Download completed');
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
