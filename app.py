@@ -29,7 +29,7 @@ from synthesis_engine.api_manufacturer_service import ApiManufacturerService
 from synthesis_engine.api_manufacturer_discovery import ApiManufacturerDiscoveryService
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
+app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-here-change-in-production')  # Use environment variable for security
 
 # Global analyzer instance - lazy loaded to reduce memory usage
 analyzer = None
